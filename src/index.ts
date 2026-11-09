@@ -31,15 +31,21 @@ export function min( ...nums: bigint[] ): bigint
     return nums.reduce( (a,b) => a < b ? a : b );
 }
 
+const ZERO = BigInt( 0 );
+const MAX_UINT32 = BigInt( 0xffffffff );
+
+/**
+ * `floor( log2( num ) )` for a positive `num`, `-log2( -num )` for a negative one, `0` for `0`
+ */
 export function log2( num: bigint ): bigint
 {
-    if( num === BigInt(0) ) return BigInt(0);
-    if( num < BigInt(0) ) return -log2( abs( num ) );
-    
-    let n = BigInt( num );
-    let result = BigInt( 0 );
-    while( n >>= BigInt( 1 ) ) result++;
-    return result;
+    const n = BigInt( num );
+    if( n < ZERO ) return -log2( -n );
+    if( n <= MAX_UINT32 ) return n === ZERO ? ZERO : BigInt( 31 - Math.clz32( Number( n ) ) );
+
+    // 4 bits per hex digit after the first, plus the bits of the first digit
+    const hex = n.toString( 16 );
+    return BigInt( ( hex.length - 1 ) * 4 + 31 - Math.clz32( parseInt( hex[0], 16 ) ) );
 }
 
 /**
